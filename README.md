@@ -89,4 +89,4 @@ dotnet run --project tests/DwgShadow.CoreTests
 
 ## License
 
-Not specified yet.
+[MIT](LICENSE). Uses [Clipper2](https://github.com/AngusJohnson/Clipper2) (Boost Software License 1.0).
