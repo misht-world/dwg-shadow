@@ -1,0 +1,8 @@
+bin/
+obj/
+dist/
+*.user
+.vs/
+old/Shadow4/build/
+old/Shadow4/dist/
+old/Shadow4/*.spec

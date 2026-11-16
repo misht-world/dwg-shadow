@@ -1,0 +1,53 @@
+<UserControl x:Class="DwgShadow.UI.LocationPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:DwgShadow.UI">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/DwgShadow;component/UI/Common.xaml" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <TextBlock Style="{StaticResource Lbl}" Text="{ui:T city}" />
+        <ComboBox x:Name="Cities" Grid.Column="1" Grid.ColumnSpan="2" Width="170" HorizontalAlignment="Left"
+                  SelectionChanged="Cities_SelectionChanged" />
+
+        <TextBlock Grid.Row="1" Style="{StaticResource Lbl}" Text="{ui:T lat}" />
+        <TextBox Grid.Row="1" Grid.Column="1" Width="70"
+                 Text="{Binding S.Latitude, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+        <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Hint}" Text="{ui:T lat.tip}" />
+
+        <TextBlock Grid.Row="2" Style="{StaticResource Lbl}" Text="{ui:T lon}" />
+        <TextBox Grid.Row="2" Grid.Column="1" Width="70"
+                 Text="{Binding S.Longitude, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+        <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource Hint}" Text="{ui:T lon.tip}" />
+
+        <TextBlock Grid.Row="3" Style="{StaticResource Lbl}" Text="{ui:T utc}" />
+        <TextBox Grid.Row="3" Grid.Column="1" Width="70"
+                 Text="{Binding S.UtcOffset, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+
+        <CheckBox x:Name="NorthCheck" Grid.Row="4" Content="{ui:T north}" ToolTip="{ui:T north.tip}"
+                  IsChecked="{Binding S.UseNorthAngle}" />
+        <TextBox Grid.Row="4" Grid.Column="1" Width="70" IsEnabled="{Binding IsChecked, ElementName=NorthCheck}"
+                 ToolTip="{ui:T north.tip}"
+                 Text="{Binding S.NorthAngle, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="3" Orientation="Horizontal">
+            <TextBlock Style="{StaticResource Lbl}" Text="{ui:T minalt}" />
+            <TextBox Width="40"
+                     Text="{Binding S.MinAltitude, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

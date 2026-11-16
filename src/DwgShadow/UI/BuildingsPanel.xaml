@@ -1,0 +1,32 @@
+<UserControl x:Class="DwgShadow.UI.BuildingsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:DwgShadow.UI">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/DwgShadow;component/UI/Common.xaml" />
+    </UserControl.Resources>
+    <GroupBox Header="{ui:T bld}">
+        <StackPanel>
+            <DockPanel>
+                <RadioButton GroupName="src" Content="{ui:T src.layer}"
+                             IsChecked="{Binding S.SourceMode, Converter={StaticResource Enum}, ConverterParameter=Layer}" />
+                <ComboBox ItemsSource="{Binding Layers}" SelectedItem="{Binding S.SourceLayer}"
+                          IsEnabled="{Binding S.SourceMode, Converter={StaticResource Enum}, ConverterParameter=Layer}" />
+            </DockPanel>
+            <RadioButton GroupName="src" Content="{ui:T src.select}" ToolTip="{ui:T src.select.tip}"
+                         IsChecked="{Binding S.SourceMode, Converter={StaticResource Enum}, ConverterParameter=Selection}" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <TextBlock Style="{StaticResource Lbl}" Text="{ui:T floors}" />
+                <TextBox Width="44" Text="{Binding S.Floors, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                <TextBlock Style="{StaticResource Lbl}" Margin="4,2" Text="{ui:T floorh}" />
+                <TextBox Width="40" Text="{Binding S.FloorHeight, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                <TextBlock Style="{StaticResource Lbl}" Margin="4,2,0,2">
+                    <Run Text="= " /><Run Text="{Binding S.FixedHeightM, Mode=OneWay, StringFormat=0.##}" /><Run Text=" " /><Run Text="{ui:T m}" />
+                </TextBlock>
+            </StackPanel>
+            <CheckBox Content="{ui:T fromlabels}" ToolTip="{ui:T fromlabels.tip}" IsChecked="{Binding S.HeightFromLabels}" />
+            <CheckBox Content="{ui:T replace}" ToolTip="{ui:T replace.tip}" IsChecked="{Binding S.ReplacePrevious}" />
+        </StackPanel>
+    </GroupBox>
+</UserControl>

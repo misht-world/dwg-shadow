@@ -1,0 +1,105 @@
+<Window x:Class="DwgShadow.UI.SeriesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:DwgShadow.UI"
+        Title="{ui:T win.series}" Width="800" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False"
+        FontFamily="Segoe UI" FontSize="12">
+    <Window.Resources>
+        <ResourceDictionary Source="/DwgShadow;component/UI/Common.xaml" />
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+            <StackPanel>
+                <ui:BuildingsPanel />
+
+                <GroupBox Header="{ui:T interval}">
+                    <StackPanel Orientation="Horizontal">
+                        <DatePicker Width="112" Margin="0,2,6,2" SelectedDate="{Binding S.Date}" />
+                        <TextBlock Style="{StaticResource Lbl}" Text="{ui:T from}" />
+                        <TextBox Width="46" Text="{Binding S.SeriesStart, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Style="{StaticResource Lbl}" Margin="4,2" Text="{ui:T to}" />
+                        <TextBox Width="46" Text="{Binding S.SeriesEnd, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Style="{StaticResource Lbl}" Margin="4,2" Text="{ui:T step}" />
+                        <TextBox Width="38" Text="{Binding S.SeriesStep, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <Expander Header="{ui:T exp.location}" IsExpanded="{Binding S.ExpLocation}">
+                    <ui:LocationPanel />
+                </Expander>
+                <Expander Header="{ui:T exp.labels}" IsExpanded="{Binding S.ExpLabels}">
+                    <ui:LabelsPanel />
+                </Expander>
+                <Expander Header="{ui:T exp.style}" IsExpanded="{Binding S.ExpStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource Lbl}" Text="{ui:T s.prefix}" />
+                        <TextBox Grid.Column="1" Width="150" HorizontalAlignment="Left"
+                                 Text="{Binding S.SeriesLayerPrefix, UpdateSourceTrigger=PropertyChanged}" />
+                        <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Content="{ui:T s.perlayer}" IsChecked="{Binding S.SeriesLayerPerTime}" />
+                        <TextBlock Grid.Row="2" Style="{StaticResource Lbl}" Text="{ui:T units}" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left" ItemsSource="{Binding UnitChoices}"
+                                  DisplayMemberPath="Title" SelectedValuePath="Value" SelectedValue="{Binding S.Units}" />
+                        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <CheckBox x:Name="LabelCheck" Content="{ui:T s.labels}" IsChecked="{Binding S.SeriesLabels}" />
+                            <TextBox Width="40" IsEnabled="{Binding IsChecked, ElementName=LabelCheck}"
+                                     Text="{Binding S.SeriesLabelHeight, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <CheckBox x:Name="ZoneCheck" Content="{ui:T s.zone}" IsChecked="{Binding S.SeriesEnvelope}" Margin="0,3,10,3" />
+                            <CheckBox Content="{ui:T s.zonehatch}" IsChecked="{Binding S.DrawHatch}"
+                                      IsEnabled="{Binding IsChecked, ElementName=ZoneCheck}" />
+                            <ui:ColorButton IsEnabled="{Binding IsChecked, ElementName=ZoneCheck}" />
+                        </StackPanel>
+                        <CheckBox Grid.Row="5" Grid.ColumnSpan="2" Content="{ui:T subtract}" IsChecked="{Binding S.SubtractFootprints}" />
+                    </Grid>
+                </Expander>
+                <TextBlock Style="{StaticResource Hint}" Text="{ui:T s.note}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Column="1" Margin="8,6,0,4" Width="300">
+            <ui:PreviewControl x:Name="Preview" SeriesMode="True" Height="250" />
+            <DataGrid x:Name="Table" Height="170" Margin="0,6,0,0" AutoGenerateColumns="False" IsReadOnly="True"
+                      HeadersVisibility="Column" CanUserSortColumns="False" GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#E0E0E0" FontSize="11">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{ui:T col.time}" Binding="{Binding Time}" Width="46" />
+                    <DataGridTextColumn Header="{ui:T col.az}" Binding="{Binding Azimuth}" Width="64" />
+                    <DataGridTextColumn Header="{ui:T col.alt}" Binding="{Binding Altitude}" Width="64" />
+                    <DataGridTextColumn Header="{ui:T col.ratio}" Binding="{Binding Ratio}" Width="58" />
+                    <DataGridTextColumn Header="" Binding="{Binding Status}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" LastChildFill="False" Margin="0,8,0,0">
+            <TextBlock DockPanel.Dock="Left" Style="{StaticResource Lbl}" Text="{ui:T lang}" />
+            <ComboBox x:Name="LangBox" DockPanel.Dock="Left" Width="90" ItemsSource="{Binding Languages}"
+                      DisplayMemberPath="Title" SelectedValuePath="Value" />
+            <Button DockPanel.Dock="Right" Width="86" Margin="8,0,0,0" Padding="0,3" Content="{ui:T btn.cancel}" IsCancel="True" />
+            <Button DockPanel.Dock="Right" Width="100" Padding="0,3" Content="{ui:T btn.build}" IsDefault="True" Click="Ok_Click" />
+        </DockPanel>
+    </Grid>
+</Window>

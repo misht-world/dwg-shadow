@@ -1,0 +1,121 @@
+<Window x:Class="DwgShadow.UI.ShadowWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:DwgShadow.UI"
+        Title="{ui:T win.shadow}" Width="790" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False"
+        FontFamily="Segoe UI" FontSize="12">
+    <Window.Resources>
+        <ResourceDictionary Source="/DwgShadow;component/UI/Common.xaml" />
+    </Window.Resources>
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+            <StackPanel>
+                <ui:BuildingsPanel />
+
+                <GroupBox Header="{ui:T sun}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <RadioButton GroupName="sun" Content="{ui:T sun.manual}"
+                                     IsChecked="{Binding S.SunMode, Converter={StaticResource Enum}, ConverterParameter=Manual}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                    IsEnabled="{Binding S.SunMode, Converter={StaticResource Enum}, ConverterParameter=Manual}">
+                            <TextBlock Style="{StaticResource Lbl}" Text="{ui:T dir}" ToolTip="{ui:T dir.tip}" />
+                            <TextBox Width="44" ToolTip="{ui:T dir.tip}"
+                                     Text="{Binding S.ManualDirection, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                            <TextBlock Style="{StaticResource Lbl}" Margin="8,2,4,2" Text="{ui:T alt}" ToolTip="{ui:T alt.tip}" />
+                            <TextBox Width="44" ToolTip="{ui:T alt.tip}"
+                                     Text="{Binding S.ManualAltitude, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                        </StackPanel>
+
+                        <RadioButton Grid.Row="1" GroupName="sun" Content="{ui:T sun.astro}"
+                                     IsChecked="{Binding S.SunMode, Converter={StaticResource Enum}, ConverterParameter=Astronomical}" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                    IsEnabled="{Binding S.SunMode, Converter={StaticResource Enum}, ConverterParameter=Astronomical}">
+                            <DatePicker Width="112" Margin="0,2,4,2" SelectedDate="{Binding S.Date}" />
+                            <TextBlock Style="{StaticResource Lbl}" Margin="4,2" Text="{ui:T time}" />
+                            <TextBox Width="48" ToolTip="{ui:T time.tip}" Text="{Binding S.Time, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <Expander Header="{ui:T exp.location}" IsExpanded="{Binding S.ExpLocation}">
+                    <ui:LocationPanel />
+                </Expander>
+                <Expander Header="{ui:T exp.labels}" IsExpanded="{Binding S.ExpLabels}">
+                    <ui:LabelsPanel />
+                </Expander>
+                <Expander Header="{ui:T exp.style}" IsExpanded="{Binding S.ExpStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource Lbl}" Text="{ui:T outlayer}" />
+                        <ComboBox Grid.Column="1" IsEditable="True" ItemsSource="{Binding Layers}"
+                                  Text="{Binding S.OutputLayer, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Grid.Row="1" Style="{StaticResource Lbl}" Text="{ui:T color}" />
+                        <ui:ColorButton Grid.Row="1" Grid.Column="1" />
+                        <TextBlock Grid.Row="2" Style="{StaticResource Lbl}" Text="{ui:T units}" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left" ItemsSource="{Binding UnitChoices}"
+                                  DisplayMemberPath="Title" SelectedValuePath="Value" SelectedValue="{Binding S.Units}" />
+                        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <CheckBox Content="{ui:T contour}" IsChecked="{Binding S.DrawContour}" Margin="0,3,12,3" />
+                            <CheckBox x:Name="HatchCheck" Content="{ui:T hatch}" IsChecked="{Binding S.DrawHatch}" />
+                            <ComboBox Width="80" IsEditable="True" ItemsSource="{Binding HatchPatterns}"
+                                      Text="{Binding S.HatchPattern, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEnabled="{Binding IsChecked, ElementName=HatchCheck}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal"
+                                    IsEnabled="{Binding IsChecked, ElementName=HatchCheck}">
+                            <TextBlock Style="{StaticResource Lbl}" Text="{ui:T scale}" />
+                            <TextBox Width="40" Text="{Binding S.HatchScale, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                            <TextBlock Style="{StaticResource Lbl}" Margin="8,2,4,2" Text="{ui:T transp}" />
+                            <TextBox Width="36" Text="{Binding S.HatchTransparency, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                            <CheckBox Margin="10,3,0,3" Content="{ui:T toback}" IsChecked="{Binding S.HatchToBack}" />
+                        </StackPanel>
+                        <CheckBox Grid.Row="5" Grid.ColumnSpan="2" Content="{ui:T subtract}" IsChecked="{Binding S.SubtractFootprints}" />
+                    </Grid>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Column="1" Margin="8,6,0,4" VerticalAlignment="Top">
+            <ui:PreviewControl x:Name="Preview" Width="290" Height="320" />
+        </Border>
+
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" LastChildFill="False" Margin="0,8,0,0">
+            <TextBlock DockPanel.Dock="Left" Style="{StaticResource Lbl}" Text="{ui:T lang}" />
+            <ComboBox x:Name="LangBox" DockPanel.Dock="Left" Width="90" ItemsSource="{Binding Languages}"
+                      DisplayMemberPath="Title" SelectedValuePath="Value" />
+            <Button DockPanel.Dock="Left" Margin="12,0,0,0" Padding="10,3" Content="{ui:T btn.series}"
+                    ToolTip="{ui:T btn.series.tip}" Click="Series_Click" />
+            <Button DockPanel.Dock="Right" Width="86" Margin="8,0,0,0" Padding="0,3" Content="{ui:T btn.cancel}" IsCancel="True" />
+            <Button DockPanel.Dock="Right" Width="100" Padding="0,3" Content="{ui:T btn.build}" IsDefault="True" Click="Ok_Click" />
+        </DockPanel>
+    </Grid>
+</Window>

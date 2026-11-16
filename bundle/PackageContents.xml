@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AutoCAD autoload package. The DwgShadow.bundle folder goes to
+     %APPDATA%\Autodesk\ApplicationPlugins (current user). -->
+<ApplicationPackage SchemaVersion="1.0"
+                    AutodeskProduct="AutoCAD"
+                    ProductType="Application"
+                    Name="DwgShadow"
+                    Description="Building shadows from footprint contours"
+                    AppVersion="1.0.0"
+                    ProductCode="{721986B4-A5CE-462A-88A5-628504C00CC4}"
+                    UpgradeCodes="{FBBBEC49-D4A6-497A-B91F-4518C0D4A747}">
+  <CompanyDetails Name="DwgShadow" />
+  <!-- R24.0–R24.3 = AutoCAD 2021–2024 (and verticals: Architecture, MEP, Civil 3D) on .NET Framework 4.8 -->
+  <RuntimeRequirements OS="Win64" Platform="AutoCAD*" SeriesMin="R24.0" SeriesMax="R24.3" />
+  <Components>
+    <RuntimeRequirements OS="Win64" Platform="AutoCAD*" SeriesMin="R24.0" SeriesMax="R24.3" />
+    <ComponentEntry AppName="DwgShadow"
+                    ModuleName="./Contents/Win64/DwgShadow.dll"
+                    AppDescription="Building shadows: SHD, SHDSERIES"
+                    LoadOnAutoCADStartup="True">
+      <Commands GroupName="DWGSHADOW">
+        <Command Global="SHD" Local="SHD" />
+        <Command Global="SHDSERIES" Local="SHDSERIES" />
+        <Command Global="-SHD" Local="-SHD" />
+        <Command Global="-SHDSERIES" Local="-SHDSERIES" />
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>

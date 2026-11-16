@@ -1,0 +1,29 @@
+<UserControl x:Class="DwgShadow.UI.LabelsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:DwgShadow.UI">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/DwgShadow;component/UI/Common.xaml" />
+    </UserControl.Resources>
+    <StackPanel>
+        <Grid IsEnabled="{Binding S.HeightFromLabels}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock Style="{StaticResource Lbl}" Text="{ui:T label.means}" />
+            <ComboBox Grid.Column="1" Width="120" HorizontalAlignment="Left" ItemsSource="{Binding TextMeanings}"
+                      DisplayMemberPath="Title" SelectedValuePath="Value" SelectedValue="{Binding S.TextMeaning}" />
+            <TextBlock Grid.Row="1" Style="{StaticResource Lbl}" Text="{ui:T label.layer}" />
+            <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding TextLayers}" DisplayMemberPath="Title"
+                      SelectedValuePath="Value" SelectedValue="{Binding S.TextLayer}" />
+        </Grid>
+        <TextBlock Style="{StaticResource Hint}" Text="{ui:T label.hint}" />
+        <CheckBox Content="{ui:T courtyards}" IsChecked="{Binding S.Courtyards}" />
+        <TextBlock Style="{StaticResource Hint}" Text="{ui:T contours.hint}" />
+    </StackPanel>
+</UserControl>
