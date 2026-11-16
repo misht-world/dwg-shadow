@@ -37,7 +37,19 @@ An AutoCAD .NET plug-in that draws building shadows from footprint contours, for
 
 ## Installation
 
-Requirements: AutoCAD 2021–2024 (including verticals such as AutoCAD Architecture). Building from source also needs the .NET SDK 8 or later.
+Requirements: AutoCAD 2021–2024 (including verticals such as AutoCAD Architecture).
+
+### From a release
+
+1. Download `DwgShadow-vX.Y.Z.zip` from [Releases](https://github.com/misht-world/dwg-shadow/releases/latest).
+2. Close AutoCAD, unzip the archive and double-click `install.cmd`.
+3. Start AutoCAD and type `SHD`.
+
+The installer copies `DwgShadow.bundle` to `%APPDATA%\Autodesk\ApplicationPlugins` and unblocks the downloaded files. `uninstall.cmd` removes it.
+
+### From source
+
+Building from source needs the .NET SDK 8 or later.
 
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1
@@ -86,6 +98,12 @@ Run the core checks:
 ```bash
 dotnet run --project tests/DwgShadow.CoreTests
 ```
+
+## Versions and releases
+
+The version lives in one place: `<Version>` in `src/DwgShadow/DwgShadow.csproj` ([Semantic Versioning](https://semver.org/)). `scripts/build-bundle.ps1` stamps it into the bundle manifest and names the release archive `dist/DwgShadow-vX.Y.Z.zip`. The plug-in shows it in the dialog titles and in the load message. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
+To release: bump `<Version>`, add a CHANGELOG entry, run `scripts/build-bundle.ps1`, tag `vX.Y.Z` and attach the archive to a GitHub release.
 
 ## License
 

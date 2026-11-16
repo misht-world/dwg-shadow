@@ -179,8 +179,8 @@ namespace DwgShadow.Core
                                 "The sun is below {0:0.#}° for the whole range. Change the date or time range."),
 
             // ---- command line
-            ["msg.loaded"] = ("DwgShadow загружен. Команды: SHD — тени, SHDSERIES — серия теней (-SHD, -SHDSERIES — без окна).",
-                              "DwgShadow loaded. Commands: SHD — shadows, SHDSERIES — shadow series (-SHD, -SHDSERIES — no dialog)."),
+            ["msg.loaded"] = ("DwgShadow {0} загружен. Команды: SHD — тени, SHDSERIES — серия теней (-SHD, -SHDSERIES — без окна).",
+                              "DwgShadow {0} loaded. Commands: SHD — shadows, SHDSERIES — shadow series (-SHD, -SHDSERIES — no dialog)."),
             ["msg.prefix"] = ("Тени: ", "Shadows: "),
             ["msg.error"] = ("ошибка — {0}\nПодробности в журнале: {1}", "error — {0}\nDetails in the log: {1}"),
             ["msg.belowh"] = ("солнце под горизонтом ({0:0.0}°). Построение отменено.", "the sun is below the horizon ({0:0.0}°). Cancelled."),

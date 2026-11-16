@@ -35,7 +35,19 @@
 
 ## Установка
 
-Нужен AutoCAD 2021–2024 (в том числе Architecture). Для сборки из исходников — .NET SDK 8 или новее.
+Нужен AutoCAD 2021–2024 (в том числе Architecture).
+
+### Из релиза
+
+1. Скачайте `DwgShadow-vX.Y.Z.zip` со страницы [Releases](https://github.com/misht-world/dwg-shadow/releases/latest).
+2. Закройте AutoCAD, распакуйте архив и запустите `install.cmd` двойным щелчком.
+3. Запустите AutoCAD и введите `SHD`.
+
+Установщик копирует `DwgShadow.bundle` в `%APPDATA%\Autodesk\ApplicationPlugins` и снимает с файлов пометку «скачано из интернета». Удаление — `uninstall.cmd`.
+
+### Из исходников
+
+Нужен .NET SDK 8 или новее.
 
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1

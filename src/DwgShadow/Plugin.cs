@@ -19,7 +19,7 @@ namespace DwgShadow
             try
             {
                 ShadowSettings.Load(); // applies the saved UI language
-                CoreApp.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\n" + L.T("msg.loaded") + "\n");
+                CoreApp.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\n" + L.F("msg.loaded", "v" + PluginInfo.Version) + "\n");
             }
             catch { }
         }

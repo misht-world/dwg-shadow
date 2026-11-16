@@ -33,6 +33,7 @@ namespace DwgShadow.UI
         public static void Init(Window w, ComboBox langBox, ShadowSettings s, Action reopen)
         {
             w.MaxHeight = SystemParameters.WorkArea.Height - 20;
+            w.Title += "  —  DwgShadow v" + PluginInfo.Version;
             langBox.SelectedValue = s.Language;
             langBox.SelectionChanged += (o, e) =>
             {
