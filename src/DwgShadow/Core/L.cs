@@ -196,6 +196,7 @@ namespace DwgShadow.Core
             ["msg.select"] = ("\nВыберите замкнутые контуры зданий: ", "\nSelect closed building contours: "),
             ["msg.nested"] = ("добавлено вложенных контуров (дворы, части зданий): {0}.", "nested contours added (courtyards, building parts): {0}."),
             ["msg.linked"] = ("добавлено зданий с общими или пересекающимися тенями: {0}.", "buildings with shared or overlapping shadows added: {0}."),
+            ["msg.kept"] = ("из них с прежней высотой и солнцем (их не выбирали): {0}.", "of them kept their previous height and sun (not picked): {0}."),
             ["msg.removed"] = ("удалено прежних объектов: {0}.", "previous objects removed: {0}."),
             ["msg.skipped"] = ("пропущено незамкнутых или неподдерживаемых объектов: {0}.", "open or unsupported objects skipped: {0}."),
             ["msg.default"] = ("у {0} зданий нет подписи — взята высота по умолчанию {1:0.##} м.", "{0} buildings have no label — default height {1:0.##} m used."),

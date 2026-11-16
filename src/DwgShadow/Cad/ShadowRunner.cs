@@ -27,12 +27,17 @@ namespace DwgShadow.Cad
         class Plan
         {
             public HashSet<ObjectId> Sources;
+            /// <summary>Buildings the user asked for: they get the current height and sun.</summary>
+            public HashSet<ObjectId> Picked;
+            /// <summary>Parameters each building was last built with (from existing tags).</summary>
+            public Dictionary<ObjectId, SourceRef> Stored = new Dictionary<ObjectId, SourceRef>();
             public int InitialCount;
             public HashSet<ObjectId> Delete = new HashSet<ObjectId>();
             public List<TaggedObject> Existing = new List<TaggedObject>();
             public bool Partial;
             public int Nested;
             public int Linked => Math.Max(0, Sources.Count - InitialCount);
+            public int Kept;
         }
 
         static void Msg(Editor ed, string key, params object[] args) =>
@@ -65,7 +70,7 @@ namespace DwgShadow.Cad
             {
                 PrepareRemoval(tr, db, s, plan, IsTarget);
 
-                Input input = ReadInput(db, s, plan.Sources);
+                Input input = ReadInput(db, s, plan, true);
                 if (input == null) { Msg(ed, "msg.noclosed"); return; }
                 ShadowResult r = ShadowCalc.Compute(input.Buildings, dir, s.UnitsPerMeter, s.SubtractFootprints);
 
@@ -75,7 +80,7 @@ namespace DwgShadow.Cad
                 {
                     for (int iter = 0; iter < 5 && TakeOverlapping(plan, r.Union); iter++)
                     {
-                        input = ReadInput(db, s, plan.Sources);
+                        input = ReadInput(db, s, plan, true);
                         r = ShadowCalc.Compute(input.Buildings, dir, s.UnitsPerMeter, s.SubtractFootprints);
                     }
                 }
@@ -87,7 +92,7 @@ namespace DwgShadow.Cad
                 w.EnsureLayer(target, s.ColorIndex);
                 int removed = w.Erase(plan.Delete);
                 for (int i = 0; i < polys.Count; i++)
-                    w.WritePolygon(polys[i], target, s.ColorIndex, s.DrawContour, s.DrawHatch, s, SourceIds(input, owners[i]));
+                    w.WritePolygon(polys[i], target, s.ColorIndex, s.DrawContour, s.DrawHatch, s, SourceRefs(input, owners[i], dir));
                 if (s.HatchToBack) w.HatchesToBack();
                 tr.Commit();
 
@@ -123,7 +128,8 @@ namespace DwgShadow.Cad
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
                 PrepareRemoval(tr, db, s, plan, IsTarget);
-                Input input = ReadInput(db, s, plan.Sources);
+                // In a series the sun moves, so neighbours keep only their previous height.
+                Input input = ReadInput(db, s, plan, false);
                 if (input == null) { Msg(ed, "msg.noclosed"); return; }
 
                 var results = usable.Select(u => (u.time, u.dir, r: ShadowCalc.Compute(input.Buildings, u.dir, s.UnitsPerMeter, s.SubtractFootprints))).ToList();
@@ -143,7 +149,7 @@ namespace DwgShadow.Cad
                     total += polys.Count;
                     for (int k = 0; k < polys.Count; k++)
                     {
-                        List<ObjectId> src = SourceIds(input, owners[k]);
+                        List<SourceRef> src = SourceRefs(input, owners[k], dir);
                         w.WritePolygon(polys[k], layer, color, true, false, s, src);
                         if (s.SeriesLabels)
                         {
@@ -162,7 +168,7 @@ namespace DwgShadow.Cad
                     List<PolygonWithHoles> polys = ShadowGeometry.ToPolygons(zone.Union, MinArea(s));
                     List<List<int>> owners = ShadowCalc.Attribute(polys, zone);
                     for (int k = 0; k < polys.Count; k++)
-                        w.WritePolygon(polys[k], zoneLayer, s.ColorIndex, true, s.DrawHatch, s, SourceIds(input, owners[k]));
+                        w.WritePolygon(polys[k], zoneLayer, s.ColorIndex, true, s.DrawHatch, s, SourceRefs(input, owners[k], results[0].dir));
                     if (s.HatchToBack) w.HatchesToBack();
                 }
                 tr.Commit();
@@ -200,6 +206,7 @@ namespace DwgShadow.Cad
                 plan.Partial = true;
             }
             plan.InitialCount = plan.Sources.Count;
+            plan.Picked = new HashSet<ObjectId>(plan.Sources);
             return plan;
         }
 
@@ -212,6 +219,10 @@ namespace DwgShadow.Cad
         {
             if (!s.ReplacePrevious) return;
             plan.Existing = ShadowTags.Scan(tr, db, isTarget);
+            foreach (TaggedObject t in plan.Existing)
+                if (t.Sources != null)
+                    foreach (SourceRef r in t.Sources)
+                        if (r.HasParams) plan.Stored[r.Id] = r;
             if (!plan.Partial)
             {
                 foreach (TaggedObject t in plan.Existing)
@@ -234,18 +245,18 @@ namespace DwgShadow.Cad
                 foreach (TaggedObject t in plan.Existing)
                 {
                     if (t.Sources == null || plan.Delete.Contains(t.Id)) continue;
-                    if (!t.Sources.Any(plan.Sources.Contains)) continue;
+                    if (!t.Sources.Any(r => plan.Sources.Contains(r.Id))) continue;
                     plan.Delete.Add(t.Id);
                     if (AddSources(plan, t.Sources)) changed = true;
                 }
             }
         }
 
-        static bool AddSources(Plan plan, IEnumerable<ObjectId> ids)
+        static bool AddSources(Plan plan, IEnumerable<SourceRef> refs)
         {
             bool added = false;
-            foreach (ObjectId id in ids)
-                if (!id.IsErased && CadReader.IsContourClass(id) && plan.Sources.Add(id)) added = true;
+            foreach (SourceRef r in refs)
+                if (!r.Id.IsErased && CadReader.IsContourClass(r.Id) && plan.Sources.Add(r.Id)) added = true;
             return added;
         }
 
@@ -267,9 +278,10 @@ namespace DwgShadow.Cad
             return added;
         }
 
-        static Input ReadInput(Database db, ShadowSettings s, IEnumerable<ObjectId> ids)
+        /// <param name="keepSun">Neighbours pulled into the rebuild also keep their previous sun.</param>
+        static Input ReadInput(Database db, ShadowSettings s, Plan plan, bool keepSun)
         {
-            List<Contour> contours = CadReader.ReadContours(db, ids.ToList(), out int skipped);
+            List<Contour> contours = CadReader.ReadContours(db, plan.Sources.ToList(), out int skipped);
             if (contours.Count == 0) return null;
             var paths = contours.Select(c => c.Path).ToList();
 
@@ -281,8 +293,18 @@ namespace DwgShadow.Cad
                 labelValues == null ? (Func<int, bool>)null : i => labelValues.ContainsKey(i));
 
             int defaults = 0;
+            plan.Kept = 0;
             foreach (Building b in buildings)
             {
+                // A neighbour that was not picked is rebuilt exactly as before — its own height and sun.
+                ObjectId id = contours[b.SourceIndex].Id;
+                if (!plan.Picked.Contains(id) && plan.Stored.TryGetValue(id, out SourceRef prev) && prev.HasParams)
+                {
+                    b.HeightM = prev.HeightM;
+                    if (keepSun) b.DirectionOverride = new ShadowDirection { DirectionDeg = prev.DirectionDeg, AltitudeDeg = prev.AltitudeDeg };
+                    plan.Kept++;
+                    continue;
+                }
                 if (labelValues != null && labelValues.TryGetValue(b.SourceIndex, out double v))
                     b.HeightM = s.TextMeaning == TextMeaning.Floors ? v * s.FloorHeight : v;
                 else
@@ -294,17 +316,18 @@ namespace DwgShadow.Cad
             return new Input { Contours = contours, Buildings = buildings, Skipped = skipped, DefaultHeight = defaults };
         }
 
-        /// <summary>Source contour ids (outline + courtyards) of the given buildings.</summary>
-        static List<ObjectId> SourceIds(Input input, IEnumerable<int> buildingIndices)
+        /// <summary>Source contours (outline + courtyards) of the given buildings with the parameters used.</summary>
+        static List<SourceRef> SourceRefs(Input input, IEnumerable<int> buildingIndices, ShadowDirection dir)
         {
-            var ids = new List<ObjectId>();
+            var refs = new List<SourceRef>();
             foreach (int i in buildingIndices)
             {
                 Building b = input.Buildings[i];
-                ids.Add(input.Contours[b.SourceIndex].Id);
-                ids.AddRange(b.HoleIndices.Select(h => input.Contours[h].Id));
+                ShadowDirection d = b.DirectionOverride ?? dir;
+                refs.Add(SourceRef.Of(input.Contours[b.SourceIndex].Id, b.HeightM, d));
+                refs.AddRange(b.HoleIndices.Select(h => SourceRef.Of(input.Contours[h].Id, b.HeightM, d)));
             }
-            return ids;
+            return refs;
         }
 
         static double MinArea(ShadowSettings s) => 1e-4 * s.UnitsPerMeter * s.UnitsPerMeter; // 1 cm²
@@ -326,6 +349,7 @@ namespace DwgShadow.Cad
         {
             if (plan.Nested > 0) Msg(ed, "msg.nested", plan.Nested);
             if (plan.Partial && plan.Linked > 0) Msg(ed, "msg.linked", plan.Linked);
+            if (plan.Partial && plan.Kept > 0) Msg(ed, "msg.kept", plan.Kept);
             if (removed > 0) Msg(ed, "msg.removed", removed);
             if (input.Skipped > 0) Msg(ed, "msg.skipped", input.Skipped);
             if (input.DefaultHeight > 0) Msg(ed, "msg.default", input.DefaultHeight, s.FixedHeightM);

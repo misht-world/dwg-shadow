@@ -9,45 +9,89 @@ using DwgShadow.Core;
 
 namespace DwgShadow.Cad
 {
+    /// <summary>Source contour of a shadow and the parameters its building was built with.</summary>
+    public struct SourceRef
+    {
+        public ObjectId Id;
+        public bool HasParams;
+        public double HeightM, DirectionDeg, AltitudeDeg;
+
+        public static SourceRef Of(ObjectId id, double heightM, ShadowDirection dir) => new SourceRef
+        {
+            Id = id, HasParams = true, HeightM = heightM, DirectionDeg = dir.DirectionDeg, AltitudeDeg = dir.AltitudeDeg
+        };
+    }
+
     /// <summary>A shadow object already in the drawing, with the buildings it was built from.</summary>
     public class TaggedObject
     {
         public ObjectId Id;
         public string Layer;
-        public List<ObjectId> Sources;   // null = not created by DwgShadow
+        public List<SourceRef> Sources;  // null = not created by DwgShadow
         public PathD Outline;            // closed polyline outline, otherwise null
     }
 
     /// <summary>
-    /// Tags on created objects: an extension-dictionary Xrecord with soft pointers to the
-    /// source building contours. Soft pointers survive copy/paste and WBLOCK.
+    /// Tags on created objects: an extension-dictionary Xrecord with soft pointers to the source
+    /// building contours, each followed by the height and sun used for that building.
+    /// Soft pointers survive copy/paste and WBLOCK.
     /// </summary>
     public static class ShadowTags
     {
         public const string Key = "DWGSHADOW";
 
-        public static void Write(Transaction tr, Entity ent, IEnumerable<ObjectId> sources)
+        public static void Write(Transaction tr, Entity ent, IEnumerable<SourceRef> sources)
         {
             ent.CreateExtensionDictionary();
             var dict = (DBDictionary)tr.GetObject(ent.ExtensionDictionary, OpenMode.ForWrite);
-            var values = new List<TypedValue> { new TypedValue((int)DxfCode.Text, "v1") };
-            values.AddRange(sources.Distinct().Select(id => new TypedValue((int)DxfCode.SoftPointerId, id)));
+            var values = new List<TypedValue> { new TypedValue((int)DxfCode.Text, "v2") };
+            var seen = new HashSet<ObjectId>();
+            foreach (SourceRef r in sources)
+            {
+                if (!seen.Add(r.Id)) continue;
+                values.Add(new TypedValue((int)DxfCode.SoftPointerId, r.Id));
+                if (!r.HasParams) continue;
+                values.Add(new TypedValue((int)DxfCode.Real, r.HeightM));
+                values.Add(new TypedValue((int)DxfCode.Real, r.DirectionDeg));
+                values.Add(new TypedValue((int)DxfCode.Real, r.AltitudeDeg));
+            }
             var xr = new Xrecord { Data = new ResultBuffer(values.ToArray()) };
             dict.SetAt(Key, xr);
             tr.AddNewlyCreatedDBObject(xr, true);
         }
 
-        /// <summary>Source ids of a DwgShadow object, or null for foreign objects.</summary>
-        public static List<ObjectId> Read(Transaction tr, Entity ent)
+        /// <summary>Sources of a DwgShadow object, or null for foreign objects. Reads v1 (ids only) and v2.</summary>
+        public static List<SourceRef> Read(Transaction tr, Entity ent)
         {
             if (ent.ExtensionDictionary.IsNull) return null;
             var dict = tr.GetObject(ent.ExtensionDictionary, OpenMode.ForRead) as DBDictionary;
             if (dict == null || !dict.Contains(Key)) return null;
             var xr = tr.GetObject(dict.GetAt(Key), OpenMode.ForRead) as Xrecord;
-            var list = new List<ObjectId>();
-            if (xr?.Data != null)
-                foreach (TypedValue tv in xr.Data)
-                    if (tv.TypeCode == (int)DxfCode.SoftPointerId && tv.Value is ObjectId id) list.Add(id);
+            var list = new List<SourceRef>();
+            if (xr?.Data == null) return list;
+            var reals = new List<double>();
+            void Flush()
+            {
+                if (list.Count == 0) return;
+                if (reals.Count >= 3)
+                {
+                    SourceRef last = list[list.Count - 1];
+                    last.HasParams = true;
+                    last.HeightM = reals[0]; last.DirectionDeg = reals[1]; last.AltitudeDeg = reals[2];
+                    list[list.Count - 1] = last;
+                }
+                reals.Clear();
+            }
+            foreach (TypedValue tv in xr.Data)
+            {
+                if (tv.TypeCode == (int)DxfCode.SoftPointerId && tv.Value is ObjectId id)
+                {
+                    Flush();
+                    list.Add(new SourceRef { Id = id });
+                }
+                else if (tv.TypeCode == (int)DxfCode.Real && tv.Value is double d) reals.Add(d);
+            }
+            Flush();
             return list;
         }
 
@@ -132,7 +176,7 @@ namespace DwgShadow.Cad
         }
 
         public void WritePolygon(PolygonWithHoles poly, string layer, short color, bool contour, bool hatch,
-                                 ShadowSettings s, ICollection<ObjectId> sources)
+                                 ShadowSettings s, ICollection<SourceRef> sources)
         {
             if (contour)
             {
@@ -142,7 +186,7 @@ namespace DwgShadow.Cad
             if (hatch) AddHatch(poly, layer, color, s, sources);
         }
 
-        ObjectId AddPolyline(PathD path, string layer, short color, ICollection<ObjectId> sources)
+        ObjectId AddPolyline(PathD path, string layer, short color, ICollection<SourceRef> sources)
         {
             var pl = new Polyline(path.Count);
             pl.SetDatabaseDefaults(_db);
@@ -158,7 +202,7 @@ namespace DwgShadow.Cad
             return id;
         }
 
-        void AddHatch(PolygonWithHoles poly, string layer, short color, ShadowSettings s, ICollection<ObjectId> sources)
+        void AddHatch(PolygonWithHoles poly, string layer, short color, ShadowSettings s, ICollection<SourceRef> sources)
         {
             Hatch h = null;
             try
@@ -209,7 +253,7 @@ namespace DwgShadow.Cad
             return pts;
         }
 
-        public void AddText(string text, double x, double y, double height, string layer, short color, ICollection<ObjectId> sources)
+        public void AddText(string text, double x, double y, double height, string layer, short color, ICollection<SourceRef> sources)
         {
             var t = new DBText();
             t.SetDatabaseDefaults(_db);

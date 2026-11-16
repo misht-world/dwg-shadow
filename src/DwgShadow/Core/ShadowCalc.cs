@@ -104,7 +104,7 @@ namespace DwgShadow.Core
             {
                 try
                 {
-                    dir.Offset(b.HeightM, unitsPerMeter, out double dx, out double dy);
+                    (b.DirectionOverride ?? dir).Offset(b.HeightM, unitsPerMeter, out double dx, out double dy);
                     r.PerBuilding.Add(ShadowGeometry.BuildingShadow(b, dx, dy));
                     if (subtractFootprints) footprints.Add(ShadowGeometry.Footprint(b));
                 }

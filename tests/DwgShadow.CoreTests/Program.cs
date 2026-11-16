@@ -85,6 +85,15 @@ static class Program
         bool single = owners.Any(o => o.Count == 1 && o[0] == 1);
         Check(resPolys.Count == 2 && merged && single, "Attribution: merged shadow → both buildings, separate → one");
 
+        // ---------- Per-building sun: a neighbour keeps its previous shadow
+        var tall = new Building { Outer = Rect(0, 0, 10, 10), HeightM = 20 };
+        var keep = new Building { Outer = Rect(30, 0, 40, 10), HeightM = 10, DirectionOverride = new ShadowDirection { DirectionDeg = 90, AltitudeDeg = 45 } };
+        ShadowResult mixed = ShadowCalc.Compute(new[] { tall, keep }, east, 1, false);
+        RectD kb = Clipper.GetBounds(mixed.PerBuilding[1]);
+        RectD tb = Clipper.GetBounds(mixed.PerBuilding[0]);
+        Check(Math.Abs(tb.right - 30) < 1e-6 && Math.Abs(kb.right - 40) < 1e-6 && Math.Abs(kb.bottom - 20) < 1e-6,
+              "Direction override: picked building uses the new sun, neighbour keeps its own");
+
         // ---------- Grouping
         var groups = BuildingGrouper.Group(new List<PathD> { Rect(0, 0, 30, 30), Rect(10, 10, 20, 20), Rect(50, 0, 60, 10) }, true);
         Check(groups.Count == 2 && groups.Any(g => g.Holes.Count == 1 && g.HoleIndices.SequenceEqual(new[] { 1 })), "Grouping: 2 buildings, one courtyard with its index");

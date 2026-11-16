@@ -15,6 +15,8 @@ namespace DwgShadow.Core
         public int SourceIndex;
         /// <summary>Indices of the source courtyard contours.</summary>
         public List<int> HoleIndices = new List<int>();
+        /// <summary>Sun for this building instead of the common one (keeps a neighbour's previous shadow).</summary>
+        public ShadowDirection? DirectionOverride;
     }
 
     /// <summary>Polygon with holes — one result item.</summary>
