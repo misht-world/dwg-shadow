@@ -82,6 +82,23 @@ namespace DwgShadow.Cad
             return res.Value.GetObjectIds().ToList();
         }
 
+        /// <summary>Drops objects created by DwgShadow (tagged shadows) from a list of contour ids.</summary>
+        public static List<ObjectId> WithoutShadowObjects(Database db, IEnumerable<ObjectId> ids)
+        {
+            var result = new List<ObjectId>();
+            using (Transaction tr = db.TransactionManager.StartOpenCloseTransaction())
+            {
+                foreach (ObjectId id in ids)
+                {
+                    bool shadow = false;
+                    try { shadow = tr.GetObject(id, OpenMode.ForRead) is Entity e && ShadowTags.Read(tr, e) != null; } catch { }
+                    if (!shadow) result.Add(id);
+                }
+                tr.Commit();
+            }
+            return result;
+        }
+
         /// <summary>Reads contours. Open and unsupported objects are skipped.</summary>
         public static List<Contour> ReadContours(Database db, IEnumerable<ObjectId> ids, out int skipped)
         {
@@ -122,7 +139,7 @@ namespace DwgShadow.Cad
             }
             var have = new HashSet<ObjectId>(picked.Select(c => c.Id));
             var boxes = picked.Select(c => ShadowGeometry.Bounds(c.Path)).ToList();
-            var candidates = ContoursOnLayers(db, layers).Where(id => !have.Contains(id)).ToList();
+            var candidates = WithoutShadowObjects(db, ContoursOnLayers(db, layers).Where(id => !have.Contains(id)).ToList());
             int added = 0;
             foreach (Contour c in ReadContours(db, candidates, out _))
             {

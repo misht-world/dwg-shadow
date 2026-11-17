@@ -141,8 +141,12 @@ namespace DwgShadow.Cad
             _space = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForWrite);
         }
 
-        /// <summary>Creates the layer if needed. A locked or frozen layer is an error with a clear message.</summary>
-        public void EnsureLayer(string name, short colorIndex)
+        /// <summary>
+        /// Creates the layer if needed. A locked or frozen layer is an error with a clear message.
+        /// With ByLayer/ByBlock colour (256/0) a new layer copies colour and transparency from
+        /// <paramref name="likeLayer"/> when it exists (so a series zone looks like the shadow layer).
+        /// </summary>
+        public void EnsureLayer(string name, short colorIndex, string likeLayer = null)
         {
             SymbolUtilityServices.ValidateSymbolName(name, false);
             var lt = (LayerTable)_tr.GetObject(_db.LayerTableId, OpenMode.ForRead);
@@ -157,10 +161,18 @@ namespace DwgShadow.Cad
             var rec = new LayerTableRecord
             {
                 Name = name,
-                Color = Color.FromColorIndex(ColorMethod.ByAci, colorIndex >= 1 && colorIndex <= 255 ? colorIndex : (short)7)
+                Color = Color.FromColorIndex(ColorMethod.ByAci, colorIndex >= 1 && colorIndex <= 255 ? colorIndex : (short)8)
             };
             lt.Add(rec);
             _tr.AddNewlyCreatedDBObject(rec, true);
+            // Colour and transparency of another layer can only be copied once the record is in the database.
+            bool byLayer = colorIndex < 1 || colorIndex > 255;
+            if (byLayer && !string.IsNullOrEmpty(likeLayer) && lt.Has(likeLayer))
+            {
+                var like = (LayerTableRecord)_tr.GetObject(lt[likeLayer], OpenMode.ForRead);
+                rec.Color = like.Color;
+                rec.Transparency = like.Transparency;
+            }
         }
 
         public int Erase(IEnumerable<ObjectId> ids)

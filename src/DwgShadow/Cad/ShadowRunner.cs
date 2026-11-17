@@ -161,7 +161,7 @@ namespace DwgShadow.Cad
 
                 if (s.SeriesEnvelope)
                 {
-                    w.EnsureLayer(zoneLayer, s.ColorIndex);
+                    w.EnsureLayer(zoneLayer, s.ColorIndex, s.OutputLayer);
                     var zone = new ShadowResult { Union = ShadowGeometry.UnionAll(results.Select(x => x.r.Union)) };
                     for (int b = 0; b < input.Buildings.Count; b++)
                         zone.PerBuilding.Add(ShadowGeometry.UnionAll(results.Select(x => x.r.PerBuilding[b])));
@@ -198,6 +198,8 @@ namespace DwgShadow.Cad
             else
             {
                 List<ObjectId> ids = CadReader.SelectContours(ed);
+                // Shadows drawn by DwgShadow are closed polylines too — never treat them as buildings.
+                if (ids != null) ids = CadReader.WithoutShadowObjects(db, ids);
                 if (ids == null || ids.Count == 0) { Msg(ed, "msg.noselect"); return null; }
                 List<Contour> picked = CadReader.ReadContours(db, ids, out _);
                 if (picked.Count == 0) { Msg(ed, "msg.noclosed"); return null; }
