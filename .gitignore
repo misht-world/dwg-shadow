@@ -6,3 +6,5 @@ dist/
 old/Shadow4/build/
 old/Shadow4/dist/
 old/Shadow4/*.spec
+media/
+*.mp4

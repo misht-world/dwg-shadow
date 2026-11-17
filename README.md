@@ -90,6 +90,8 @@ bundle/      autoload package manifest
 scripts/     build, install, uninstall
 tests/DwgShadow.CoreTests   checks of the calculation core (dotnet run)
 tests/UiSnapshot            renders the dialogs to PNG without AutoCAD
+tools/DemoVideo             renders a promo video (frames for ffmpeg) using the plug-in core
+demo/        demo drawing (demo-site.dwg) and a screen-recording guide
 old/         the original Python script
 ```
 
