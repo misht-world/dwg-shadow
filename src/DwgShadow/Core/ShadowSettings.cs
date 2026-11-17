@@ -108,6 +108,7 @@ namespace DwgShadow.Core
         public string HatchPattern { get => _hatchPattern; set => Set(ref _hatchPattern, value ?? "SOLID"); }
         public double HatchScale { get => _hatchScale; set => Set(ref _hatchScale, value); }
         public int HatchTransparency { get => _hatchTransparency; set => Set(ref _hatchTransparency, value); }
+        /// <summary>Draw order: shadows right below the building layer (name kept for saved settings).</summary>
         public bool HatchToBack { get => _hatchToBack; set => Set(ref _hatchToBack, value); }
         public bool SubtractFootprints { get => _subtractFootprints; set => Set(ref _subtractFootprints, value); }
         /// <summary>Remove previous shadows: whole layer in layer mode, only the picked buildings' shadows in selection mode.</summary>

@@ -109,7 +109,7 @@ namespace DwgShadow.Core
             ["scale"] = ("масштаб", "scale"),
             ["transp"] = ("прозр., %", "transp., %"),
             ["subtract"] = ("Вырезать здания из тени", "Cut buildings out of shadows"),
-            ["toback"] = ("Штриховку на задний план", "Send hatch to back"),
+            ["toback"] = ("Тени под зданиями", "Shadows below buildings"),
             ["color.bylayer"] = ("ПоСлою", "ByLayer"),
             ["color.byblock"] = ("ПоБлоку", "ByBlock"),
             ["color.n"] = ("Цвет {0}", "Color {0}"),

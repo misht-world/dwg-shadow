@@ -128,6 +128,7 @@ namespace DwgShadow.Cad
         readonly Transaction _tr;
         readonly BlockTableRecord _space;
         readonly List<ObjectId> _hatches = new List<ObjectId>();
+        readonly List<ObjectId> _outlines = new List<ObjectId>();
 
         public int Contours { get; private set; }
         public int Hatches { get; private set; }
@@ -198,6 +199,7 @@ namespace DwgShadow.Cad
             ObjectId id = _space.AppendEntity(pl);
             _tr.AddNewlyCreatedDBObject(pl, true);
             ShadowTags.Write(_tr, pl, sources);
+            _outlines.Add(id);
             Contours++;
             return id;
         }
@@ -267,12 +269,31 @@ namespace DwgShadow.Cad
             ShadowTags.Write(_tr, t, sources);
         }
 
-        /// <summary>Sends hatches to the back so they do not cover building outlines.</summary>
-        public void HatchesToBack()
+        /// <summary>
+        /// Puts the created shadows (hatches, then outlines) right below the lowest object on the
+        /// building layers, so shadows never cover building contours or fills — also after rebuilds.
+        /// Objects below the buildings (underlays, base maps) stay below the shadows.
+        /// </summary>
+        public void PlaceUnderBuildings(IEnumerable<ObjectId> buildingContours)
         {
-            if (_hatches.Count == 0) return;
+            var shadows = _hatches.Concat(_outlines).Where(id => !id.IsErased).ToArray();
+            if (shadows.Length == 0) return;
+
+            var layers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (ObjectId id in buildingContours)
+                if (!id.IsErased && _tr.GetObject(id, OpenMode.ForRead) is Entity e) layers.Add(e.Layer);
+
             var dot = (DrawOrderTable)_tr.GetObject(_space.DrawOrderTableId, OpenMode.ForWrite);
-            dot.MoveToBottom(new ObjectIdCollection(_hatches.ToArray()));
+            var mine = new HashSet<ObjectId>(shadows);
+            ObjectId target = ObjectId.Null;
+            foreach (ObjectId id in dot.GetFullDrawOrder(0))      // bottom → top
+            {
+                if (mine.Contains(id) || id.IsErased) continue;
+                if (_tr.GetObject(id, OpenMode.ForRead) is Entity e && layers.Contains(e.Layer)) { target = id; break; }
+            }
+            var ids = new ObjectIdCollection(shadows);
+            if (target.IsNull) dot.MoveToBottom(ids);
+            else dot.MoveBelow(ids, target);
         }
     }
 }

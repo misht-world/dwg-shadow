@@ -4,7 +4,7 @@ $src = Join-Path $PSScriptRoot 'DwgShadow.bundle'
 if (-not (Test-Path $src)) { throw "DwgShadow.bundle not found next to this script: $src" }
 
 if (Get-Process acad -ErrorAction SilentlyContinue) {
-    Write-Warning 'AutoCAD is running. Close it and run the installer again if copying fails.'
+    throw 'AutoCAD is running and keeps the plug-in files locked. Close AutoCAD and run the installer again.'
 }
 
 $plugins = Join-Path $env:APPDATA 'Autodesk\ApplicationPlugins'

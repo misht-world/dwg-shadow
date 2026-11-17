@@ -96,9 +96,11 @@
                             <TextBox Width="40" Text="{Binding S.HatchScale, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
                             <TextBlock Style="{StaticResource Lbl}" Margin="8,2,4,2" Text="{ui:T transp}" />
                             <TextBox Width="36" Text="{Binding S.HatchTransparency, Converter={StaticResource Num}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
-                            <CheckBox Margin="10,3,0,3" Content="{ui:T toback}" IsChecked="{Binding S.HatchToBack}" />
                         </StackPanel>
-                        <CheckBox Grid.Row="5" Grid.ColumnSpan="2" Content="{ui:T subtract}" IsChecked="{Binding S.SubtractFootprints}" />
+                        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal">
+                            <CheckBox Content="{ui:T subtract}" IsChecked="{Binding S.SubtractFootprints}" Margin="0,3,14,3" />
+                            <CheckBox Content="{ui:T toback}" IsChecked="{Binding S.HatchToBack}" />
+                        </StackPanel>
                     </Grid>
                 </Expander>
             </StackPanel>

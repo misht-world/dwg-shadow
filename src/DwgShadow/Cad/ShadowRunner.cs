@@ -93,7 +93,7 @@ namespace DwgShadow.Cad
                 int removed = w.Erase(plan.Delete);
                 for (int i = 0; i < polys.Count; i++)
                     w.WritePolygon(polys[i], target, s.ColorIndex, s.DrawContour, s.DrawHatch, s, SourceRefs(input, owners[i], dir));
-                if (s.HatchToBack) w.HatchesToBack();
+                if (s.HatchToBack) w.PlaceUnderBuildings(input.Contours.Select(c => c.Id));
                 tr.Commit();
 
                 Msg(ed, "msg.dir", dir.AltitudeDeg, dir.DirectionDeg, dir.LengthRatio);
@@ -169,8 +169,8 @@ namespace DwgShadow.Cad
                     List<List<int>> owners = ShadowCalc.Attribute(polys, zone);
                     for (int k = 0; k < polys.Count; k++)
                         w.WritePolygon(polys[k], zoneLayer, s.ColorIndex, true, s.DrawHatch, s, SourceRefs(input, owners[k], results[0].dir));
-                    if (s.HatchToBack) w.HatchesToBack();
                 }
+                if (s.HatchToBack) w.PlaceUnderBuildings(input.Contours.Select(c => c.Id));
                 tr.Commit();
 
                 Msg(ed, "msg.s.done", s.Date, usable.Count, usable.First().time.ToString(@"hh\:mm"), usable.Last().time.ToString(@"hh\:mm"), total);

@@ -15,7 +15,7 @@ if (-not $NoBuild) {
 if (-not (Test-Path $bundleSrc)) { throw "Bundle not found: $bundleSrc" }
 
 if (Get-Process acad -ErrorAction SilentlyContinue) {
-    Write-Warning 'AutoCAD is running: plug-in files may be locked. Close AutoCAD and run again if copying fails.'
+    throw 'AutoCAD is running and keeps the plug-in files locked. Close AutoCAD and run the installer again.'
 }
 
 $target = Join-Path $env:APPDATA 'Autodesk\ApplicationPlugins\DwgShadow.bundle'

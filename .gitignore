@@ -8,3 +8,6 @@ old/Shadow4/dist/
 old/Shadow4/*.spec
 media/
 *.mp4
+*.dwl
+*.dwl2
+*.bak
