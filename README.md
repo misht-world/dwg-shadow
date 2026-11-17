@@ -6,6 +6,10 @@ An AutoCAD .NET plug-in that draws building shadows from footprint contours, for
 
 ![Main dialog](docs/shadow-en.png)
 
+## Why 2D
+
+You don't always need a 3D model to show shadows. For a presentation sheet, a quick check or a client meeting, shadows on the 2D site plan are often enough: clear, good-looking and fast. DwgShadow works from what is already on the drawing — **plain closed 2D polylines** of building footprints and their floor counts. No 3D, no BIM model, no extra setup.
+
 ## Features
 
 - **Sun direction and altitude.** Set them manually, or calculate them from latitude, longitude, date and time (NOAA solar position algorithm, works offline).
