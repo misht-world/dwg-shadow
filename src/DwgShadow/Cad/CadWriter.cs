@@ -291,9 +291,19 @@ namespace DwgShadow.Cad
                 if (mine.Contains(id) || id.IsErased) continue;
                 if (_tr.GetObject(id, OpenMode.ForRead) is Entity e && layers.Contains(e.Layer)) { target = id; break; }
             }
-            var ids = new ObjectIdCollection(shadows);
-            if (target.IsNull) dot.MoveToBottom(ids);
-            else dot.MoveBelow(ids, target);
+            // Two passes keep hatches under the outlines: [... hatches, outlines, buildings ...]
+            var hatches = new ObjectIdCollection(_hatches.Where(id => !id.IsErased).ToArray());
+            var outlines = new ObjectIdCollection(_outlines.Where(id => !id.IsErased).ToArray());
+            if (target.IsNull)
+            {
+                if (outlines.Count > 0) dot.MoveToBottom(outlines);
+                if (hatches.Count > 0) dot.MoveToBottom(hatches);
+            }
+            else
+            {
+                if (hatches.Count > 0) dot.MoveBelow(hatches, target);
+                if (outlines.Count > 0) dot.MoveBelow(outlines, target);
+            }
         }
     }
 }
