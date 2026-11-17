@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using DwgShadow.Core;
@@ -37,16 +38,19 @@ namespace DwgShadow.UI
             return value?.ToString() ?? "";
         }
 
+        // Never throw from here: an exception thrown while the user types (e.g. Backspace to an empty
+        // box) escapes WPF validation and can take AutoCAD down. Returning UnsetValue makes WPF mark the
+        // field as a conversion error (red border) and keeps the previous value in the settings.
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            string s = (value as string ?? "").Trim().Replace(" ", "").Replace(" ", "").Replace(',', '.');
+            string s = (value as string ?? "").Trim().Replace(" ", "").Replace("\u00A0", "").Replace(',', '.');
             if (!double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double d) || double.IsNaN(d) || double.IsInfinity(d))
-                throw new FormatException(L.T("v.number"));
+                return DependencyProperty.UnsetValue;
             Type t = Nullable.GetUnderlyingType(targetType) ?? targetType;
             object result;
             if (t == typeof(int))
             {
-                if (Math.Abs(d - Math.Round(d)) > 1e-9) throw new FormatException(L.T("v.integer"));
+                if (Math.Abs(d - Math.Round(d)) > 1e-9) return DependencyProperty.UnsetValue;
                 result = (int)Math.Round(d);
             }
             else if (t == typeof(short)) result = (short)Math.Round(d);

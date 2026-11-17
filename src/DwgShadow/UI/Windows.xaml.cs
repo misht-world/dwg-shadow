@@ -32,6 +32,17 @@ namespace DwgShadow.UI
         /// <summary>Common window setup: height limit and the language switch (reopens the window).</summary>
         public static void Init(Window w, ComboBox langBox, ShadowSettings s, Action reopen)
         {
+            // Safety net: an exception from our own dialog code must never reach AutoCAD's message loop
+            // (it ends in a fatal error). Only exceptions raised by DwgShadow code are handled here.
+            System.Windows.Threading.DispatcherUnhandledExceptionEventHandler guard = (o, e) =>
+            {
+                if (e.Exception?.ToString().Contains("DwgShadow.") != true) return;
+                e.Handled = true;
+                Log.Write("dialog", e.Exception);
+            };
+            w.Dispatcher.UnhandledException += guard;
+            w.Closed += (o, e) => w.Dispatcher.UnhandledException -= guard;
+
             w.MaxHeight = SystemParameters.WorkArea.Height - 20;
             w.Title += "  —  DwgShadow v" + PluginInfo.Version;
             langBox.SelectedValue = s.Language;

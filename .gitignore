@@ -12,3 +12,4 @@ media/
 *.dwl2
 *.bak
 /Drawing*.dwg
+acad.err

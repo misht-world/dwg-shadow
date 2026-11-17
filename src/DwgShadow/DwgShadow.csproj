@@ -11,7 +11,7 @@
     <RootNamespace>DwgShadow</RootNamespace>
     <AssemblyName>DwgShadow</AssemblyName>
     <!-- Single source of the version: scripts/build-bundle.ps1 stamps it into PackageContents.xml -->
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>misht-world</Authors>
     <Copyright>Copyright (c) 2026 misht-world</Copyright>
     <RepositoryUrl>https://github.com/misht-world/dwg-shadow</RepositoryUrl>

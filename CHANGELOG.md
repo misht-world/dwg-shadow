@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 The project follows [Semantic Versioning](https://semver.org/); the version is set once in `src/DwgShadow/DwgShadow.csproj`.
 
+## [1.1.1] — 2026-11-17
+
+### Fixed
+- **AutoCAD could crash** when a number field in the dialog was cleared or got a non-number (e.g. Backspace in "Floors"). The field is now just highlighted as an error; as a safety net, any error from the plug-in dialogs is logged instead of reaching AutoCAD.
+- "Pick in drawing" took existing shadow outlines inside a selection window for buildings. Objects created by DwgShadow are now ignored as sources.
+- The combined zone of a shadow series was created on a layer with colour 7 (dark fill). A new zone layer now copies colour and transparency from the shadow layer.
+
+### Added
+- `tests/DialogTests`: opens the real dialogs and types invalid input into every number field.
+
 ## [1.1.0] — 2026-11-17
 
 ### Changed
@@ -31,5 +41,6 @@ First release. A rewrite of the old Python/COM script (`old/`) as an in-process 
 - Errors go to the command line and `%APPDATA%\DwgShadow\log.txt` instead of crashing AutoCAD; one undo reverts a whole build.
 - Autoload bundle, installer scripts and a release archive.
 
+[1.1.1]: https://github.com/misht-world/dwg-shadow/releases/tag/v1.1.1
 [1.1.0]: https://github.com/misht-world/dwg-shadow/releases/tag/v1.1.0
 [1.0.0]: https://github.com/misht-world/dwg-shadow/releases/tag/v1.0.0
