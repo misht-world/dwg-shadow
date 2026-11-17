@@ -11,3 +11,4 @@ media/
 *.dwl
 *.dwl2
 *.bak
+/Drawing*.dwg
